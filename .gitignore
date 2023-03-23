@@ -6,7 +6,7 @@ keyboards/__pycache__/
 .idea/
 .breakpoints
 .replit
-.config.py
+config.py
 background.py
 poerty.lock
 pyproject.toml
