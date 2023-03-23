@@ -28,7 +28,7 @@ async def sql_read_menu(message):
 
 
 async def sql_read_to_delete(message):
-    return cur.execute('SELECT id_sql, name, spendtime, maxtime FROM data_games WHERE iduser == ? AND deleted == "No"', (message.from_user.id,)).fetchall()
+    return cur.execute('SELECT id_sql, name, spendtime, maxtime FROM data_games WHERE iduser == ? AND deleted == "No" AND status == "sleep"', (message.from_user.id,)).fetchall()
 
 
 async def sql_read_to_start_game(iduser):

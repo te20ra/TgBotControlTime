@@ -13,7 +13,6 @@ from handlers.apsched import check_timeout
 
 class FsmStart(StatesGroup):
     start = State()
-    stop = State()
 
 
 async def select_game(message: types.Message):
@@ -40,7 +39,7 @@ async def game_selcted(callback_query: types.CallbackQuery):
 
 
 async def game_started(message: types.Message, state: FSMContext):
-    await FsmStart.next()
+    await state.finish()
     iduser = message.from_user.id
     starttime = datetime.now()
     id_sql = await sqlite_db.sql_return_id_sql(iduser)
@@ -49,18 +48,17 @@ async def game_started(message: types.Message, state: FSMContext):
     last_time = starttime + timedelta(minutes=maxtime-spend_time)
     await sqlite_db.sql_do_last_time(str(last_time), id_sql)
     sheduler.add_job(check_timeout, 'interval', seconds=60, id=f'timeout {id_sql}', args=(dp,), max_instances=1,
-                     kwargs={'message': message,
+                     kwargs={'iduser': iduser,
                              'id_sql': id_sql,
                              'last_time': last_time,
-                             'start_time': starttime})
+                             'starttime': starttime})
 
     last_time =last_time.astimezone(timezone('Europe/Moscow')).strftime('%H:%M')
     await bot.send_message(message.from_user.id, text=f'У тебя есть время до {last_time}\nКак закончишь играть, нажми на кнопку', reply_markup= \
         InlineKeyboardMarkup().add(InlineKeyboardButton('СТОП', callback_data=f'stopgame_{id_sql}_{str(starttime)}')))
 
 
-async def game_stoped(callback_query: types.CallbackQuery, state: FSMContext):
-    await state.finish()
+async def game_stoped(callback_query: types.CallbackQuery):
     line = callback_query.data.split('_')
     id_sql = line[1]
     starttime = datetime.strptime(line[2].split('.')[0], '%Y-%m-%d %H:%M:%S')
@@ -82,6 +80,5 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(select_game, commands='Начать_игру')
     dp.register_callback_query_handler(game_selcted, lambda x: x.data and x.data.startswith('select'))
     dp.register_message_handler(game_started, commands='Старт', state=FsmStart.start)
-    dp.register_callback_query_handler(game_stoped, lambda x: x.data and x.data.startswith('stopgame'),
-                                       state=FsmStart.stop)
+    dp.register_callback_query_handler(game_stoped, lambda x: x.data and x.data.startswith('stopgame'))
     dp.register_message_handler(game_exit, commands='Назад')

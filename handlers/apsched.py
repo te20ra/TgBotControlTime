@@ -1,18 +1,20 @@
 from create_bot import sheduler
-from aiogram import types, Dispatcher
-from data_base import sqlite_db,sqlite_db_time
+from aiogram import Dispatcher
+from data_base import sqlite_db, sqlite_db_time
 from datetime import datetime
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from asyncio import sleep
 
 
-async def check_timeout(dp: Dispatcher, message: types.Message, id_sql, last_time):
+async def check_timeout(dp: Dispatcher, iduser, id_sql, last_time, starttime):
     status = await sqlite_db.sql_status_check(id_sql)
     if status == 'sleep':
         sheduler.remove_job(f'timeout {id_sql}')
     elif status == 'active' and datetime.now() > last_time:
-        await dp.bot.send_message(message.from_user.id, 'Заканчивай, ага')
-
+        msg = await dp.bot.send_message(iduser, 'Заканчивай, ага', reply_markup= \
+        InlineKeyboardMarkup().add(InlineKeyboardButton('СТОП', callback_data=f'stopgame_{id_sql}_{str(starttime)}')))
+        await sleep(58)
+        await dp.bot.delete_message(iduser, msg.message_id)
 
 async def add_job_sheduler(dp: Dispatcher, iduser, id_sql, name):
     print(f'add_job_sheduler {id_sql, name}')
