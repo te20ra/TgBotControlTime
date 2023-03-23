@@ -8,7 +8,7 @@ from data_base import sqlite_db_time
 from create_bot import sheduler, dp
 from handlers.apsched import add_job_sheduler
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
+from datetime import datetime,timedelta
 
 async def time_start(message: types.Message):
     await bot.send_message(message.from_user.id, "Вы в меню настройки напоминаний", reply_markup=kb_time.button_case_add)
@@ -90,8 +90,12 @@ async def add_time(message: types.Message, state: FSMContext):
             await bot.send_message(message.from_user.id, f'Напоминание добавлено \nДни: {data["days"]}\nВремя: {data["time"]}\nСтатус: ON',reply_markup=kb_time.button_case_add)
             name = data['name_job']
             days = data['days'].strip().replace(' ','')
+            data['time'] = datetime.strptime(data['time'], '%H:%M')
+            data['time'] = data['time'] - timedelta(minutes=1)
+            data['time'] = datetime.strftime(data['time'], '%H:%M')
             hour = data['time'].split(':')[0]
             minute = data['time'].split(':')[1]
+
             await sqlite_db_time.sql_time_new(state)
             idsql = await sqlite_db_time.sql_time_idsql(state)
             await state.finish()
