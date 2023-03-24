@@ -119,9 +119,12 @@ async def job_stop(callback_query: types.CallbackQuery):
 
 async def delete_job(message: types.Message):
     read = await sqlite_db_time.sql_time_read_to_delete(message)
-    for ret in read:
-        days = rename_days(ret[2])[:-2]
-        await bot.send_message(message.from_user.id, text=f'НАПОМИНАНИЕ: {ret[1]}\nДни: {days}\nВремя: {ret[3]}\nСтатус: {ret[4]}', reply_markup=\
+    if len(read) == 0:
+        bot.send_message(message.from_user.id, 'Отсутствуют напоминания')
+    else:
+        for ret in read:
+            days = rename_days(ret[2])[:-2]
+            await bot.send_message(message.from_user.id, text=f'НАПОМИНАНИЕ: {ret[1]}\nДни: {days}\nВремя: {ret[3]}\nСтатус: {ret[4]}', reply_markup=\
         InlineKeyboardMarkup().add(InlineKeyboardButton('Удалить', callback_data=f'del_time {ret[0]}')))
 
 

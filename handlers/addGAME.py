@@ -68,8 +68,11 @@ async def add_game_maxtime(message : types.Message, state: FSMContext):
 
 async def delete_game(message: types.Message):
     read = await sqlite_db.sql_read_to_delete(message)
-    for ret in read:
-        await bot.send_message(message.from_user.id, text=f'{ret[1]}:  {ret[2]}  /  {ret[3]}', reply_markup=\
+    if len(read) == 0:
+        bot.send_message(message.from_user.id, 'Отсутствуют игры')
+    else:
+        for ret in read:
+            await bot.send_message(message.from_user.id, text=f'{ret[1]}:  {ret[2]}  /  {ret[3]}', reply_markup=\
         InlineKeyboardMarkup().add(InlineKeyboardButton('Удалить', callback_data=f'del {ret[0]}')))
 
 
