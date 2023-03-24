@@ -50,12 +50,14 @@ async def add_day(callback_query: types.CallbackQuery, state: FSMContext):
     day = callback_query.data.replace('day_','')
     async with state.proxy() as data:
         msgid = data['msgid']
-        if day == 'ready':
+        if day == 'ready' and data['days'] != '':
             await FSM_time.next()
             await callback_query.answer()
             await bot.send_message(callback_query.from_user.id, 'Теперь введи время в формате "12:34"')
             data['days'] = data['days'][:-2]
             del data['msgid']
+        elif day == 'ready' and data['days'] == '':
+            await callback_query.answer('Необходимо выбрать дни',show_alert=True)
         elif day in data['days']:
             data['days'] = data['days'].replace(f'{day}, ','')
             await callback_query.answer('День удален')
@@ -115,9 +117,10 @@ async def delete_job(message: types.Message):
 async def del_game(callback_query: types.CallbackQuery):
     id_sql = callback_query.data.replace('del_time ', '')
     await sqlite_db_time.sql_time_delete(id_sql)
-    sheduler.remove_job(f'job {id_sql}')
     await callback_query.answer('deleted')
     await callback_query.message.delete()
+    sheduler.remove_job(f'job {id_sql}')
+
 
 
 async def time_menu(message: types.Message):
