@@ -7,12 +7,10 @@ from handlers.apsched import add_job_sheduler
 from datetime import datetime, timedelta
 async def command_start(message: types.Message):
     await bot.send_message(message.from_user.id,
-                           'Здарова. Этот бот поможет тебе контролировать время которое ты тратишь на игры, а также создавать напоминания.\n'
-                           '/moder - команда для добавления в список новой игры или удаления старой (Всего может быть 10 игр)\n'
-                           '/game_start - команда для начала выбора игры и отсчета таймера\n'
-                           '/menu - команда для просмотра добавленных игр и оставшегося времени\n'
+                           'Привет. Этот бот поможет тебе контролировать время которое ты тратишь на игры, а также создавать напоминания.\n'
+                           '/game - команда для игр. Там можно добавить/удалить игру(всего 10 штук), начать таймер для игры и просмотреть список игр\n'
+                           '/time - команда для создания/удаления и просмотра напоминаний\n'
                            '/help - команда для вывода команд бота\n'
-                           '/time - команда для создания и удаления напоминаний\n'
                            '*Если вдруг бот долго не реагирует на что-то, значит он умер или ожидает иного действия',
                            reply_markup=kb_main.button_case_add)
     await message.delete()
@@ -48,7 +46,6 @@ async def start_shedulers_with_bot():
         time = datetime.strftime(time, '%H:%M')
         hour = time.split(':')[0]
         minute = time.split(':')[1]
-        print(idsql,iduser,name,days,hour,minute)
         sheduler.add_job(add_job_sheduler, 'cron', day_of_week=days, hour=hour, minute=minute, id=f'job {idsql}',
                          args=(dp,),
                          kwargs={'iduser': iduser,

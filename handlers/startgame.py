@@ -31,7 +31,7 @@ async def select_game(message: types.Message):
 async def game_selcted(callback_query: types.CallbackQuery):
     game = callback_query.data.replace("select ", "")
     await callback_query.answer()
-    await callback_query.answer()
+    await callback_query.message.delete()
     await FsmStart.start.set()
     await sqlite_db.sql_status_active(callback_query.from_user.id, game)
     await bot.send_message(callback_query.from_user.id, f'Нажмите на "/Старт" для начала отсчета таймера игры "{game}"',

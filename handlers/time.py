@@ -144,9 +144,8 @@ async def time_menu(message: types.Message):
 
 async def job_pause(callback_query: types.CallbackQuery):
     idsql = callback_query.data.replace('job_p_', '')
-    rrr = await sqlite_db_time.sql_time_one_line(idsql)
     ret = (await sqlite_db_time.sql_time_one_line(idsql))[0]
-    days = rename_days(ret[1])
+    days = rename_days(ret[1])[:-2]
     if ret[-1] == 'ON':
         await sqlite_db_time.sql_time_status_OFF(idsql)
         await callback_query.answer()
@@ -158,18 +157,14 @@ async def job_pause(callback_query: types.CallbackQuery):
                                                .add(InlineKeyboardButton('Возобновить',
                                                                          callback_data=f'job_r_{idsql}'))
                                                )
-        print(sheduler.print_jobs())
-        print(sheduler.get_jobs())
     else:
         await callback_query.answer('Напоминание уже остановлено')
 
 
 async def job_resume(callback_query: types.CallbackQuery):
     idsql = callback_query.data.replace('job_r_', '')
-    rrr = await sqlite_db_time.sql_time_one_line(idsql)
-    print(rrr)
     ret = (await sqlite_db_time.sql_time_one_line(idsql))[0]
-    days = rename_days(ret[1])
+    days = rename_days(ret[1])[:-2]
     if ret[-1] == 'OFF':
         await sqlite_db_time.sql_time_status_ON(idsql)
         await callback_query.answer()
@@ -181,8 +176,6 @@ async def job_resume(callback_query: types.CallbackQuery):
                                                .add(InlineKeyboardButton('Возобновить',
                                                                          callback_data=f'job_r_{idsql}'))
                                                )
-        print(sheduler.print_jobs())
-        print(sheduler.get_jobs())
     else:
         await callback_query.answer('Напоминание уже возобнавлено')
 
