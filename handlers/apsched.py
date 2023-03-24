@@ -14,8 +14,10 @@ async def check_timeout(dp: Dispatcher, iduser, id_sql, last_time, starttime):
         msg = await dp.bot.send_message(iduser, 'Заканчивай, ага', reply_markup= \
         InlineKeyboardMarkup().add(InlineKeyboardButton('СТОП', callback_data=f'stopgame_{id_sql}_{str(starttime)}')))
         await sleep(58)
-        await dp.bot.delete_message(iduser, msg.message_id)
-
+        try:
+            await dp.bot.delete_message(iduser, msg.message_id)
+        except:
+            print('Сообщение уже удалено')
 async def add_job_sheduler(dp: Dispatcher, iduser, id_sql, name):
     print(f'add_job_sheduler {id_sql, name}')
     await sqlite_db_time.sql_alarm_yes(id_sql)
@@ -30,6 +32,9 @@ async def alarm(dp: Dispatcher, iduser, name, id_sql):
         msg = await dp.bot.send_message(iduser, f'НАПОМИНАЮ\n{name}', \
         reply_markup=InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton('Нажми на меня', callback_data=f'job_stop_{id_sql}')))
         await sleep(58)
-        await dp.bot.delete_message(iduser, msg.message_id)
+        try:
+            await dp.bot.delete_message(iduser, msg.message_id)
+        except:
+            print('Сообщение уже удалено')
     else:
         sheduler.remove_job(f'alarm {id_sql}')

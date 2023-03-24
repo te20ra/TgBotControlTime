@@ -111,6 +111,7 @@ async def add_time(message: types.Message, state: FSMContext):
 
 async def job_stop(callback_query: types.CallbackQuery):
     id_sql = callback_query.data.replace('job_stop_','')
+    await callback_query.message.delete()
     await sqlite_db_time.sql_alarm_no(id_sql)
     await callback_query.answer('Напоминание выполнено')
 
@@ -129,23 +130,6 @@ async def del_game(callback_query: types.CallbackQuery):
     await callback_query.answer('deleted')
     await callback_query.message.delete()
 
-    ''' deleted = await sqlite_db_time.sql_time_deleted_check(id_sql)
-     if deleted == 'No':
-         await sqlite_db_time.sql_time_delete(id_sql)
-         sheduler.remove_job(f'job {id_sql}')
-         await callback_query.answer('deleted')
-     elif deleted == 'Yes':
-         await sqlite_db_time.sql_time_delete(id_sql)
-         await callback_query.answer('deleted')
-     status = await sqlite_db_time.sql_time_status_check(id_sql)
-     if status == 'ON':
-         await sqlite_db_time.sql_time_delete(id_sql)
-         sheduler.remove_job(f'job {id_sql}')
-         await callback_query.answer('deleted')
-     elif status == 'OFF':
-         await sqlite_db_time.sql_time_delete(id_sql)
-         await callback_query.answer('deleted')
-    '''
 
 async def time_menu(message: types.Message):
     menu = await sqlite_db_time.sql_time_read_menu(message)

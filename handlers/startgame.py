@@ -66,9 +66,10 @@ async def game_stoped(callback_query: types.CallbackQuery):
     await sqlite_db.sql_status_sleep(id_sql)
     await sqlite_db.sql_update_spendtime(id_sql, timespend)
     await callback_query.answer("GG")
-    await bot.send_message(callback_query.from_user.id, f'Вы провели в игре {timespend} минут',
+    await bot.send_message(callback_query.from_user.id, f'Таймер остановлен\nВы провели в игре {timespend} минут',
                            reply_markup=kb_main.button_case_add)
     await sqlite_db.sql_do_last_time('', id_sql)
+    await callback_query.message.delete()
 
 
 
