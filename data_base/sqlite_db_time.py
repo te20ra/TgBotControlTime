@@ -81,3 +81,6 @@ async def sql_time_start_bot():
 
 async def sql_time_one_line(id_sql):
     return cur.execute('SELECT name, days, time, status FROM data_time WHERE id_sql == ?',(id_sql,)).fetchall()
+
+async def sql_time_count(userid):
+    return cur.execute('SELECT count(iduser) FROM data_time WHERE iduser == ? AND deleted == "No"', (userid,)).fetchone()[0]

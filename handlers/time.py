@@ -19,8 +19,12 @@ class FSM_time(StatesGroup):
     time = State()
 
 async def add_job(message: types.Message):
-    await FSM_time.name.set()
-    await bot.send_message(message.from_user.id, 'Введи название своего напоминания', reply_markup=kb_cancel.button_case_add)
+    count = await sqlite_db_time.sql_time_count(message.from_user.id)
+    if count < 10:
+        await FSM_time.name.set()
+        await bot.send_message(message.from_user.id, 'Введи название своего напоминания', reply_markup=kb_cancel.button_case_add)
+    else:
+        await bot.send_message(message.from_user.id, 'Вы не можете добавить напоминание, так как закночился их лимит (10)')
 
 
 async def add_name_job(message:types.Message, state: FSMContext):

@@ -13,18 +13,17 @@ class FSM_user(StatesGroup):
 
 
 async def mode_menu(message: types.Message):
-    count = await sqlite_db.sql_count(message.from_user.id)
-    if count < 10:
-        await bot.send_message(message.from_user.id, 'Вы перешли в режим редактирования. Выберете действие',
+    await bot.send_message(message.from_user.id, 'Вы перешли в режим редактирования. Выберете действие',
                            reply_markup=kb_add_game3.button_case_add)
-    else:
-        await bot.send_message(message.from_user.id, 'Вы перешли в режим редактирования. Выберете действие',
-                               reply_markup=kb_add_game2.button_case_add)
 
 
 async def add_game_start(message: types.Message):
-    await FSM_user.game.set()
-    await message.reply('Введите название игры', reply_markup=kb_cancel.button_case_add)
+    count = await sqlite_db.sql_count(message.from_user.id)
+    if count < 10:
+        await FSM_user.game.set()
+        await message.reply('Введите название игры', reply_markup=kb_cancel.button_case_add)
+    else:
+        await bot.send_message(message.from_user.id,'Вы не можете добавить игру, так как закночился лимит игр(10)')
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -60,14 +59,8 @@ async def add_game_maxtime(message : types.Message, state: FSMContext):
     if data['maxtime'].isdigit() and 0 < int(data['maxtime']) <= 180:
         await sqlite_db.sql_add(state)
         await state.finish()
-        count = await sqlite_db.sql_count(message.from_user.id)
-        if count < 10:
-            await bot.send_message(message.from_user.id, f'Игра "{data["name"]}" с лимтом времени "{data["maxtime"]}" добавлена',
+        await bot.send_message(message.from_user.id, f'Игра "{data["name"]}" с лимтом времени "{data["maxtime"]}" добавлена',
                                reply_markup=kb_add_game3.button_case_add)
-        else:
-            await bot.send_message(message.from_user.id,
-                                   f'Игра "{data["name"]}" с лимтом времени "{data["maxtime"]}" добавлена',
-                                  reply_markup=kb_add_game2.button_case_add)
     else:
         await bot.send_message(message.from_user.id,
                                'Необходимо ввести время в минутах от 0 до 180')
