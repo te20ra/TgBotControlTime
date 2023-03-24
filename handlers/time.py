@@ -9,7 +9,7 @@ from create_bot import sheduler, dp
 from handlers.apsched import add_job_sheduler
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from datetime import datetime,timedelta
-
+from handlers.other import time_chek ,rename_days
 async def time_start(message: types.Message):
     await bot.send_message(message.from_user.id, "Вы в меню настройки напоминаний", reply_markup=kb_time.button_case_add)
 
@@ -59,26 +59,15 @@ async def add_day(callback_query: types.CallbackQuery, state: FSMContext):
         elif day in data['days']:
             data['days'] = data['days'].replace(f'{day}, ','')
             await callback_query.answer('День удален')
-            await bot.edit_message_text(f'Выбранные дни: {data["days"][:-2]}', callback_query.from_user.id, msgid,
+            days = rename_days(data['days'])
+            await bot.edit_message_text(f'Выбранные дни: {days}', callback_query.from_user.id, msgid,
                                         reply_markup=kb_week_days.button_case_add)
         elif day not in data['days']:
             data['days'] += f'{day}, '
             await callback_query.answer('День добавлен')
-            await bot.edit_message_text(f'Выбранные дни: {data["days"][:-2]}', callback_query.from_user.id, msgid,
+            days = rename_days(data['days'])
+            await bot.edit_message_text(f'Выбранные дни: {days}', callback_query.from_user.id, msgid,
                                         reply_markup=kb_week_days.button_case_add)
-
-def time_chek(time):
-    if len(time) == 5:
-        s1 = time[0:2]
-        s2 = time[2]
-        s3 = time[3:]
-        if s1.isdigit() and 0 <= int(s1) <= 24 and s2 == ':' and s3.isdigit() and 00 <= int(s3) <=59:
-            return True
-        else:
-            return False
-    else:
-        return False
-
 
 
 
