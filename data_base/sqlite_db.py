@@ -59,6 +59,10 @@ async def sql_status_check(id_sql):
     return cur.execute('SELECT status FROM data_games WHERE id_sql == ?', (id_sql,)).fetchone()[0]
 
 
+async def sql_status_check_all(iduser):
+    return cur.execute('SELECT status FROM data_games WHERE iduser == ? AND deleted == "No"', (iduser,)).fetchall()
+
+
 async def sql_maxtime(id_sql):
     return cur.execute('SELECT maxtime FROM data_games WHERE id_sql == ?', (id_sql,)).fetchone()[0]
 
@@ -80,8 +84,8 @@ async def sql_spend_time(id_sql):
     return cur.execute('SELECT spendtime FROM data_games WHERE id_sql == ?', (id_sql,)).fetchone()[0]
 
 
-async def sql_return_id_sql(userid):
-    return cur.execute('SELECT id_sql FROM data_games WHERE iduser == ? AND status = "active" AND deleted == "No" AND last_time == ""',(userid,)).fetchone()[0]
+async def sql_return_id_sql(userid,game):
+    return cur.execute('SELECT id_sql FROM data_games WHERE iduser == ? AND status = "active" AND deleted == "No" AND name == ?',(userid,game)).fetchone()[0]
 
 async def sql_clear_spendtime():
     cur.execute('UPDATE data_games SET spendtime == 0 WHERE status == "sleep"')
