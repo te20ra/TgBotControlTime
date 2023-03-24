@@ -35,7 +35,7 @@ async def go_to_game(message: types.Message):
 
 
 async def start_shedulers_with_bot():
-    jobs = await sqlite_db_time.sql_time_read_deleted()
+    jobs = await sqlite_db_time.sql_time_start_bot()
     print(jobs)
     print(sheduler.get_jobs())
     for el in jobs:
@@ -51,6 +51,8 @@ async def start_shedulers_with_bot():
                          kwargs={'iduser': iduser,
                                  'id_sql': idsql,
                                  'name': name})
+        if await sqlite_db_time.sql_time_status_check(idsql) == 'OFF':
+            sheduler.pause_job(f'job {idsql}')
 
     print(sheduler.get_jobs())
 

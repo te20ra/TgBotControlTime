@@ -76,5 +76,5 @@ async def sql_time_status_ON(id_sql):
 async def sql_time_deleted_check(id_sql):
     return cur.execute('SELECT deleted FROM data_time WHERE id_sql == ? AND deleted == "No"',(id_sql,)).fetchone()[0]
 
-async def sql_time_read_deleted():
+async def sql_time_start_bot():
     return cur.execute('SELECT id_sql, iduser, name, days, time FROM data_time WHERE deleted == "No"').fetchall()

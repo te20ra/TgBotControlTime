@@ -82,11 +82,8 @@ async def delete_game(message: types.Message):
 
 async def del_game(callback_query: types.CallbackQuery):
     id_sql = callback_query.data.replace('del ', '')
-    #name = await sqlite_db.sql_name(id_sql)
     await sqlite_db.sql_delete(id_sql)
     await callback_query.answer('deleted')
-    #await bot.send_message(callback_query.from_user.id, f'Игра "{name}" удалена',
-                           #reply_markup=kb_add_game3.button_case_add)
     await callback_query.message.delete()
 
 
