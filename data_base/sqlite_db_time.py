@@ -58,11 +58,20 @@ async def sql_time_delete(id_sql):
 
 
 async def sql_time_read_menu(message):
-    return cur.execute('SELECT name, days, time, status FROM data_time WHERE iduser == ? AND deleted == "No"', (message.from_user.id,)).fetchall()
+    return cur.execute('SELECT id_sql, name, days, time, status FROM data_time WHERE iduser == ? AND deleted == "No"', (message.from_user.id,)).fetchall()
 
 
-#async def sql_time_status_check(id_sql):
- #   return cur.execute('SELECT status FROM data_time WHERE id_sql == ? AND deleted == "No"',(id_sql,)).fetchone()[0]
+async def sql_time_status_check(id_sql):
+    return cur.execute('SELECT status FROM data_time WHERE id_sql == ? AND deleted == "No"',(id_sql,)).fetchone()[0]
+
+
+async def sql_time_status_OFF(id_sql):
+    cur.execute('UPDATE data_time SET status == "OFF" WHERE id_sql == ?',(id_sql,))
+    base.commit()
+
+async def sql_time_status_ON(id_sql):
+    cur.execute('UPDATE data_time SET status == "ON" WHERE id_sql == ?',(id_sql,))
+    base.commit()
 
 async def sql_time_deleted_check(id_sql):
     return cur.execute('SELECT deleted FROM data_time WHERE id_sql == ? AND deleted == "No"',(id_sql,)).fetchone()[0]

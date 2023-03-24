@@ -4,12 +4,11 @@ from keyboards import kb_week_days, kb_time, kb_cancel
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from data_base import sqlite_db_time
-#from aiogram.dispatcher.filters import Text
 from create_bot import sheduler, dp
 from handlers.apsched import add_job_sheduler
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from datetime import datetime,timedelta
-from handlers.other import time_chek ,rename_days
+from datetime import datetime, timedelta
+from handlers.other import time_chek, rename_days
 async def time_start(message: types.Message):
     await bot.send_message(message.from_user.id, "Вы в меню настройки напоминаний", reply_markup=kb_time.button_case_add)
 
@@ -130,10 +129,49 @@ async def time_menu(message: types.Message):
     menu = await sqlite_db_time.sql_time_read_menu(message)
     if len(menu) > 0:
         for ret in menu:
-            await bot.send_message(message.from_user.id, f'НАПОМИНАНИЕ: {ret[0]}\nДни: {ret[1]}\nВремя: {ret[2]}\nСтатус: {ret[3]}')
+            await bot.send_message(message.from_user.id, f'НАПОМИНАНИЕ: {ret[1]}\nДни: {ret[2]}\nВремя: {ret[3]}\nСтатус: {ret[4]}',
+                reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton('Остановить',
+             callback_data=f'job_pause_{ret[0]}_{ret[1]}_{ret[2]}_{ret[3]}_{ret[4]}'))
+            .add(InlineKeyboardButton('Возобновить', callback_data=f'job_resume_{ret[0]}_{ret[1]}_{ret[2]}_{ret[3]}_{ret[4]}')))
     else:
         await bot.send_message(message.from_user.id, 'Для начала необходимо добавить напоминание')
 
+async def job_pause(callback_query: types.CallbackQuery):
+    ret = callback_query.data.replace('job_pause_', '').split('_')
+    print(ret, callback_query.data)
+    status = await sqlite_db_time.sql_time_status_check(ret[0])
+    if status == 'ON':
+        await sqlite_db_time.sql_time_status_OFF(ret[0])
+        await callback_query.answer()
+        sheduler.pause_job(f'job {ret[0]}')
+        await callback_query.message.edit_text(f'НАПОМИНАНИЕ: {ret[1]}\nДни: {ret[2]}\nВремя: {ret[3]}\nСтатус: OFF',
+                                               reply_markup=InlineKeyboardMarkup().add(
+                                                   InlineKeyboardButton('Остановить',
+                                                                        callback_data=f'job_pause_{ret[0]}_{ret[1]}_{ret[2]}_{ret[3]}_OFF'))
+                                               .add(InlineKeyboardButton('Возобновить',
+                                                                         callback_data=f'job_resume_{ret[0]}_{ret[1]}_{ret[2]}_{ret[3]}_OFF'))
+                                               )
+    else:
+        await callback_query.answer('Напоминание уже остановлено')
+
+
+async def job_resume(callback_query: types.CallbackQuery):
+    ret = callback_query.data.replace('job_resume_', '').split('_')
+    print(ret, callback_query.data)
+    status = await sqlite_db_time.sql_time_status_check(ret[0])
+    if status == 'OFF':
+        await sqlite_db_time.sql_time_status_ON(ret[0])
+        await callback_query.answer()
+        sheduler.resume_job(f'job {ret[0]}')
+        await callback_query.message.edit_text(f'НАПОМИНАНИЕ: {ret[1]}\nДни: {ret[2]}\nВремя: {ret[3]}\nСтатус: ON',
+                                               reply_markup=InlineKeyboardMarkup().add(
+                                                   InlineKeyboardButton('Остановить',
+                                                                        callback_data=f'job_pause_{ret[0]}_{ret[1]}_{ret[2]}_{ret[3]}_ON'))
+                                               .add(InlineKeyboardButton('Возобновить',
+                                                                         callback_data=f'job_resume_{ret[0]}_{ret[1]}_{ret[2]}_{ret[3]}_ON'))
+                                               )
+    else:
+        await callback_query.answer('Напоминание уже возобнавлено')
 
 def register_handlers(dp: Dispatcher):
     dp.register_message_handler(time_start, commands='time')
@@ -145,3 +183,5 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(delete_job, commands='Удалить_напомнинание')
     dp.register_callback_query_handler(del_game, lambda x: x.data and x.data.startswith('del_time'))
     dp.register_message_handler(time_menu, commands='Показать_напоминания')
+    dp.register_callback_query_handler(job_pause,lambda x: x.data and x.data.startswith('job_pause_'))
+    dp.register_callback_query_handler(job_resume, lambda x: x.data and x.data.startswith('job_resume_'))
