@@ -16,9 +16,9 @@ class FsmStart(StatesGroup):
 
 
 async def select_game(message: types.Message):
-    await bot.send_message(message.from_user.id, 'Вы перешли в режим выбора игры')
     read = await sqlite_db.sql_read_to_start_game(message.from_user.id)
     if len(read) > 0:
+        await bot.send_message(message.from_user.id, 'Вы перешли в режим выбора игры')
         for ret in read:
             await bot.send_message(message.from_user.id, text=f'{ret[0]}:  {ret[1]}  /  {ret[2]}', reply_markup= \
                 InlineKeyboardMarkup().add(InlineKeyboardButton('Выбрать', callback_data=f'select {ret[0]}')))

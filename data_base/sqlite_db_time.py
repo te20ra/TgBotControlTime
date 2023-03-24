@@ -78,3 +78,6 @@ async def sql_time_deleted_check(id_sql):
 
 async def sql_time_start_bot():
     return cur.execute('SELECT id_sql, iduser, name, days, time FROM data_time WHERE deleted == "No"').fetchall()
+
+async def sql_time_one_line(id_sql):
+    return cur.execute('SELECT name, days, time, status FROM data_time WHERE id_sql == ?',(id_sql,)).fetchall()

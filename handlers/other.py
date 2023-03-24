@@ -4,6 +4,7 @@ from data_base import sqlite_db, sqlite_db_time
 from keyboards import kb_main, kb_game
 from create_bot import sheduler, dp
 from handlers.apsched import add_job_sheduler
+from datetime import datetime, timedelta
 async def command_start(message: types.Message):
     await bot.send_message(message.from_user.id,
                            'Здарова. Этот бот поможет тебе контролировать время которое ты тратишь на игры, а также создавать напоминания.\n'
@@ -36,15 +37,17 @@ async def go_to_game(message: types.Message):
 
 async def start_shedulers_with_bot():
     jobs = await sqlite_db_time.sql_time_start_bot()
-    print(jobs)
-    print(sheduler.get_jobs())
     for el in jobs:
         idsql = el[0]
         iduser = el[1]
         name = el[2]
         days = el[3]
-        hour = el[4].split(':')[0]
-        minute = el[4].split(':')[1]
+        time = el[4]
+        time = datetime.strptime(time, '%H:%M')
+        time = time - timedelta(minutes=1)
+        time = datetime.strftime(time, '%H:%M')
+        hour = time.split(':')[0]
+        minute = time.split(':')[1]
         print(idsql,iduser,name,days,hour,minute)
         sheduler.add_job(add_job_sheduler, 'cron', day_of_week=days, hour=hour, minute=minute, id=f'job {idsql}',
                          args=(dp,),
@@ -54,7 +57,6 @@ async def start_shedulers_with_bot():
         if await sqlite_db_time.sql_time_status_check(idsql) == 'OFF':
             sheduler.pause_job(f'job {idsql}')
 
-    print(sheduler.get_jobs())
 
 
 def time_chek(time):
@@ -80,7 +82,7 @@ def rename_days(days):
                  'sun': 'вс'}
     res = ''
     if len(days) >= 3:
-        days = days.split(', ')[:-1]
+        days = days.split(', ')
         for i in range(len(days)):
             res += (days_dict[days[i]]) + ', '
     return res
