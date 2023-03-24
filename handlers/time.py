@@ -54,7 +54,10 @@ async def add_day(callback_query: types.CallbackQuery, state: FSMContext):
             await FSM_time.next()
             await callback_query.answer()
             await bot.send_message(callback_query.from_user.id, 'Теперь введи время в формате "12:34"')
+            days = rename_days(data['days'])
             data['days'] = data['days'][:-2]
+            await bot.edit_message_text(f'Выбранные дни: {days}', callback_query.from_user.id, msgid,
+                                        reply_markup='')
             del data['msgid']
         elif day == 'ready' and data['days'] == '':
             await callback_query.answer('Необходимо выбрать дни',show_alert=True)
