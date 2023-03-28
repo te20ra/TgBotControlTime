@@ -15,4 +15,5 @@ startgame.register_handlers(dp)
 time.register_handlers(dp)
 
 sheduler.add_job(sqlite_db.sql_clear_spendtime, "cron", day="1-31", hour="00", minute="01")
-executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+executor.start_polling(dp, skip_updates=True, on_startup=on_startup, on_shutdown=sqlite_db.sql_stop)
+

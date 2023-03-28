@@ -22,6 +22,7 @@ async def add_game_start(message: types.Message):
     if count < 10:
         await FSM_user.game.set()
         await message.reply('Введите название игры', reply_markup=kb_cancel.button_case_add)
+        print(count)
     else:
         await bot.send_message(message.from_user.id,'Вы не можете добавить игру, так как закночился лимит игр(10)')
 
@@ -57,6 +58,8 @@ async def add_game_maxtime(message : types.Message, state: FSMContext):
         data['spendtime'] = 0
         data['maxtime'] = message.text
     if data['maxtime'].isdigit() and 0 < int(data['maxtime']) <= 180:
+        async with state.proxy() as data:
+            data['maxtime'] = int(message.text)
         await sqlite_db.sql_add(state)
         await state.finish()
         await bot.send_message(message.from_user.id, f'Игра "{data["name"]}" с лимтом времени "{data["maxtime"]}" добавлена',
