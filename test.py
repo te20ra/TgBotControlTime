@@ -1,2 +1,0 @@
-#testfile
-a = 10
