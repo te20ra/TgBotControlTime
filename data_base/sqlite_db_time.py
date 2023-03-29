@@ -6,9 +6,9 @@ def sql3_start():
     try:
         global cur, connection
         # Подключение к существующей базе данных
-        connection = psycopg2.connect(user="blabla",
+        connection = psycopg2.connect(user="te20ra",
                                       # пароль, который указали при установке PostgreSQL
-                                      password="blabla",
+                                      password="gigi123",
                                       host="127.0.0.1",
                                       port="5432",
                                       database='database1')
@@ -40,7 +40,7 @@ async def sql_time_idsql(state):
 
 
 async def sql_time_days_check(id_sql):
-    cur.execute('SELECT days FROM data_time WHERE id_sql = %S', (id_sql,))
+    cur.execute('SELECT days FROM data_time WHERE id_sql = %s', (id_sql,))
     return cur.fetchone()[0]
 
 

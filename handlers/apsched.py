@@ -38,3 +38,6 @@ async def alarm(dp: Dispatcher, iduser, name, id_sql):
             print('Сообщение уже удалено')
     else:
         sheduler.remove_job(f'alarm {id_sql}')
+        days = await sqlite_db_time.sql_time_days_check(id_sql)
+        if days.startswith('date_') == True:
+            await sqlite_db_time.sql_time_delete(id_sql)

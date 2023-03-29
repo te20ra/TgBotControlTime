@@ -36,38 +36,53 @@ async def go_to_game(message: types.Message):
 async def start_shedulers_with_bot():
     jobs = await sqlite_db_time.sql_time_start_bot()
     for el in jobs:
-        idsql = el[0]
-        iduser = el[1]
-        name = el[2]
-        days = el[3]
-        time = el[4]
-        time = datetime.strptime(time, '%H:%M')
-        time = time - timedelta(minutes=1)
-        time = datetime.strftime(time, '%H:%M')
-        hour = time.split(':')[0]
-        minute = time.split(':')[1]
-        sheduler.add_job(add_job_sheduler, 'cron', day_of_week=days, hour=hour, minute=minute, id=f'job {idsql}',
-                         args=(dp,),
-                         kwargs={'iduser': iduser,
-                                 'id_sql': idsql,
-                                 'name': name})
-        if await sqlite_db_time.sql_time_status_check(idsql) == 'OFF':
-            sheduler.pause_job(f'job {idsql}')
+        if el[3].startswith('cron_'):
+            idsql = el[0]
+            iduser = el[1]
+            name = el[2]
+            days = el[3].replace('cron_','')
+            time = datetime.strptime(el[4], '%H:%M')
+            time = time - timedelta(minutes=1)
+            hour = time.hour
+            minute = time.minute
+            sheduler.add_job(add_job_sheduler, 'cron', day_of_week=days, hour=hour, minute=minute, id=f'job {idsql}',
+                             args=(dp,),
+                             kwargs={'iduser': iduser,
+                                     'id_sql': idsql,
+                                     'name': name})
+            if await sqlite_db_time.sql_time_status_check(idsql) == 'OFF':
+                sheduler.pause_job(f'job {idsql}')
+        elif el[3].startswith('date_'):
+            idsql = el[0]
+            iduser = el[1]
+            name = el[2]
+            date = el[3].replace('date_', '')
+            time = datetime.strptime(el[4], '%H:%M')
+            time = time - timedelta(minutes=1)
+            time = datetime.strftime(time, '%H:%M:%S')
+            date = date + ' ' + time
+            sheduler.add_job(add_job_sheduler, 'date', run_date=date, id=f'job {idsql}',
+                             args=(dp,),
+                             kwargs={'iduser': iduser,
+                                     'id_sql': idsql,
+                                     'name': name})
+            if await sqlite_db_time.sql_time_status_check(idsql) == 'OFF':
+                sheduler.pause_job(f'job {idsql}')
 
 
 
-def time_chek(time):
-    if (len(time) == 5 or len(time) == 4) and ':' in time:
-        s1, s2 = time.split(':')
-        if s1.isdigit() and 0 <= int(s1) <= 24 and len(s2) == 2 and s2.isdigit() and 00 <= int(s2) <= 59:
+async def time_chek(time):
+    try:
+        time = datetime.strptime(time, '%H:%M').time()
+        if time >= datetime.now().time():
             return True
         else:
             return False
-    else:
+    except ValueError:
         return False
 
 
-def rename_days(days):
+async def rename_days(days):
     days_dict = {'mon': 'пн',
                  'tue': 'вт',
                  'wed': 'ср',
@@ -76,11 +91,22 @@ def rename_days(days):
                  'sat': 'сб',
                  'sun': 'вс'}
     res = ''
-    if len(days) >= 3:
-        days = days.split(', ')
-        for i in range(len(days)):
-            res += (days_dict[days[i]]) + ', '
-    return res
+    days = days.replace('cron_', '').split(', ')
+    for i in range(len(days)):
+        res += (days_dict[days[i]]) + ', '
+    return res[:-2]
+
+async def date_check(date):
+    try:
+        date = datetime.strptime(date, '%Y-%m-%d').date()
+        if date >= datetime.now().date():
+            return True
+        else:
+            return False
+    except ValueError:
+        return False
+
+
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(command_start, commands=['start', 'help'])
