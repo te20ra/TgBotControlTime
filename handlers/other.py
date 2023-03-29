@@ -58,7 +58,7 @@ async def start_shedulers_with_bot():
 
 def time_chek(time):
     if (len(time) == 5 or len(time) == 4) and ':' in time:
-        s1, s2 = time.split(':')
+        s1, s2 = time.split(':') #
         if s1.isdigit() and 0 <= int(s1) <= 24 and len(s2) == 2 and s2.isdigit() and 00 <= int(s2) <= 59:
             return True
         else:
