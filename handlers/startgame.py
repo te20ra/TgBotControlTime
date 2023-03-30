@@ -6,7 +6,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from datetime import datetime
 from datetime import timedelta
 from pytz import timezone
-from keyboards import kb_game_play, kb_main
+from keyboards import kb_main
 from aiogram.dispatcher import FSMContext
 from handlers.apsched import check_timeout
 

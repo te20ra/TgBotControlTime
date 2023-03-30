@@ -105,7 +105,7 @@ async def sql_time_start_bot():
 
 
 async def sql_time_one_line(id_sql):
-    cur.execute('SELECT name, days, time, status FROM data_time WHERE id_sql = %s',(id_sql,))
+    cur.execute('SELECT name, days, time, alarm, status FROM data_time WHERE id_sql = %s',(id_sql,))
     return cur.fetchall()
 
 

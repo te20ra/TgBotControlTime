@@ -71,24 +71,25 @@ async def add_name_job_onetime(message: types.Message, state: FSMContext):
 async def add_date_onetime(message: types.Message, state: FSMContext):
     if await date_check(message.text) == True:
         async with state.proxy() as data:
-            data['date'] =message.text
+            data['date'] = message.text
         await FSM_onetime.next()
-        await bot.send_message(message.from_user.id, 'Теперь введи время в формате "12:34"')
+        await bot.send_message(message.from_user.id, 'Теперь введи время в формате "12:34"\nМинимум плюс 2 минуты к настоящему времени')
     else:
         await bot.send_message(message.from_user.id, 'Дата введена неверно')
 
 
-async def add_time_onetime(message:types.Message, state:FSMContext):
-    if await time_chek(message.text) == True:
+async def add_time_onetime(message:types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['time'] = message.text
+    if await time_chek(message.text, data['date']) == True:
+        time = datetime.strptime(data['time'], '%H:%M')
+        time = time - timedelta(minutes=1)
+        time = datetime.strftime(time, '%H:%M:%S')
+        print(time)
+        await bot.send_message(message.from_user.id,
+                           f'Напоминание добавлено \nДата: {data["date"]}\nВремя: {data["time"]}\nСтатус: ON',
+                           reply_markup=kb_time.button_case_add)
         async with state.proxy() as data:
-            data['time'] = message.text
-            time = datetime.strptime(data['time'], '%H:%M')
-            time = time - timedelta(minutes=1)
-            time = datetime.strftime(time, '%H:%M:%S')
-            print(time)
-            await bot.send_message(message.from_user.id,
-                               f'Напоминание добавлено \nДата: {data["date"]}\nВремя: {data["time"]}\nСтатус: ON',
-                               reply_markup=kb_time.button_case_add)
             data['date'] = 'date_' + data['date']
             name = data['name_job']
             date = data['date'].replace('date_', '')
@@ -136,7 +137,7 @@ async def add_day(callback_query: types.CallbackQuery, state: FSMContext):
         if day == 'ready' and data['days'].replace('cron_', '') != '':
             await FSM_time.next()
             await callback_query.answer()
-            await bot.send_message(callback_query.from_user.id, 'Теперь введи время в формате "12:34"')
+            await bot.send_message(callback_query.from_user.id, 'Теперь введи время в формате "12:34"\nМинимум плюс 2 минуты к настоящему времени')
             data['days'] = data['days'][:-2]
             days = await rename_days(data['days'])
             await bot.edit_message_text(f'Выбранные дни: {days}', callback_query.from_user.id, msgid,
@@ -176,8 +177,6 @@ async def add_time(message: types.Message, state: FSMContext):
             hour = time.hour
             minute = time.minute
             data['days'] = 'cron_' + data['days']
-        print(data)
-        print(tuple(data.values()))
         await sqlite_db_time.sql_time_new(state)
         idsql = await sqlite_db_time.sql_time_idsql(state)
         await state.finish()
@@ -185,8 +184,6 @@ async def add_time(message: types.Message, state: FSMContext):
                  kwargs={'iduser': message.from_user.id,
                          'id_sql': idsql,
                          'name': name})
-        print(sheduler.get_jobs())
-
 
     else:
         await bot.send_message(message.from_user.id, 'Время введено неверно')
@@ -233,7 +230,7 @@ async def time_menu(message: types.Message):
     if len(menu) > 0:
         for ret in menu:
             if ret[2].startswith('cron') == True:
-                days = await rename_days(ret[2].replace('cron_', ''))
+                days = await rename_days(ret[2])
                 await bot.send_message(message.from_user.id, f'Напоминание: {ret[1]}\nДни: {days}\nВремя: {ret[3]}\nСтатус: {ret[4]}',
                 reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton('Остановить',
                 callback_data=f'job_p_{ret[0]}')).add(InlineKeyboardButton('Возобновить', callback_data=f'job_r_{ret[0]}')))
@@ -251,17 +248,24 @@ async def job_pause(callback_query: types.CallbackQuery):
     idsql = callback_query.data.replace('job_p_', '')
     ret = (await sqlite_db_time.sql_time_one_line(idsql))[0]
     days = await rename_days(ret[1])
-    if ret[-1] == 'ON':
+    if ret[-1] == 'ON' and ret[-2] == 'No':
         await sqlite_db_time.sql_time_status_OFF(idsql)
         await callback_query.answer()
         sheduler.pause_job(f'job {idsql}')
-        await callback_query.message.edit_text(f'Напоминание: {ret[0]}\nДни: {days}\nВремя: {ret[2]}\nСтатус: OFF',
+        ndays = ''
+        if ret[1].startswith('cron'):
+            ndays = 'Дни'
+        elif ret[1].startswith('date'):
+            ndays = 'Дата'
+        await callback_query.message.edit_text(f'Напоминание: {ret[0]}\n{ndays}: {days}\nВремя: {ret[2]}\nСтатус: OFF',
                                                reply_markup=InlineKeyboardMarkup().add(
                                                    InlineKeyboardButton('Остановить',
                                                                         callback_data=f'job_p_{idsql}'))
                                                .add(InlineKeyboardButton('Возобновить',
                                                                          callback_data=f'job_r_{idsql}'))
                                                )
+    elif ret[-1] == 'ON' and ret[-2] == 'Yes':
+        await callback_query.answer('Сначала необходимо завершить данное напомниние')
     else:
         await callback_query.answer('Напоминание уже остановлено')
 
@@ -270,17 +274,24 @@ async def job_resume(callback_query: types.CallbackQuery):
     idsql = callback_query.data.replace('job_r_', '')
     ret = (await sqlite_db_time.sql_time_one_line(idsql))[0]
     days = await rename_days(ret[1])
-    if ret[-1] == 'OFF':
+    if ret[-1] == 'OFF' and ret[-2] == 'No':
         await sqlite_db_time.sql_time_status_ON(idsql)
         await callback_query.answer()
         sheduler.resume_job(f'job {idsql}')
-        await callback_query.message.edit_text(f'Напоминание: {ret[0]}\nДни: {days}\nВремя: {ret[2]}\nСтатус: ON',
+        ndays = ''
+        if ret[1].startswith('cron'):
+            ndays = 'Дни'
+        elif ret[1].startswith('date'):
+            ndays = 'Дата'
+        await callback_query.message.edit_text(f'Напоминание: {ret[0]}\n{ndays}: {days}\nВремя: {ret[2]}\nСтатус: ON',
                                                reply_markup=InlineKeyboardMarkup().add(
                                                    InlineKeyboardButton('Остановить',
                                                                         callback_data=f'job_p_{idsql}'))
                                                .add(InlineKeyboardButton('Возобновить',
                                                                          callback_data=f'job_r_{idsql}'))
                                                )
+    elif ret[-1] == 'OFF' and ret[-2] == 'Yes':
+        await callback_query.answer('Сначала необходимо завершить данное напомниние')
     else:
         await callback_query.answer('Напоминание уже возобнавлено')
 

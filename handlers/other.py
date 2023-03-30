@@ -61,23 +61,31 @@ async def start_shedulers_with_bot():
             time = time - timedelta(minutes=1)
             time = datetime.strftime(time, '%H:%M:%S')
             date = date + ' ' + time
-            sheduler.add_job(add_job_sheduler, 'date', run_date=date, id=f'job {idsql}',
-                             args=(dp,),
-                             kwargs={'iduser': iduser,
-                                     'id_sql': idsql,
-                                     'name': name})
-            if await sqlite_db_time.sql_time_status_check(idsql) == 'OFF':
-                sheduler.pause_job(f'job {idsql}')
+            if datetime.strptime(date, '%Y-%m-%d %H:%M:%S') > datetime.now():
+                sheduler.add_job(add_job_sheduler, 'date', run_date=date, id=f'job {idsql}',
+                                 args=(dp,),
+                                 kwargs={'iduser': iduser,
+                                         'id_sql': idsql,
+                                         'name': name})
+                if await sqlite_db_time.sql_time_status_check(idsql) == 'OFF':
+                        sheduler.pause_job(f'job {idsql}')
+            else:
+                await sqlite_db_time.sql_time_delete(idsql)
 
 
 
-async def time_chek(time):
+
+async def time_chek(time, date = ''):
     try:
         time = datetime.strptime(time, '%H:%M').time()
-        if time >= datetime.now().time():
+        if date == '':
             return True
         else:
-            return False
+            date = datetime.strptime(date, '%Y-%m-%d').date()
+            if date == datetime.now().date() and time >= (datetime.now() + timedelta(minutes=1)).time():
+                return True
+            elif date > datetime.now().date():
+                return True
     except ValueError:
         return False
 
@@ -91,10 +99,13 @@ async def rename_days(days):
                  'sat': 'сб',
                  'sun': 'вс'}
     res = ''
-    days = days.replace('cron_', '').split(', ')
-    for i in range(len(days)):
-        res += (days_dict[days[i]]) + ', '
-    return res[:-2]
+    if days.startswith('cron_'):
+        days = days.replace('cron_', '').split(', ')
+        for i in range(len(days)):
+            res += (days_dict[days[i]]) + ', '
+        return res[:-2]
+    elif days.startswith('date_'):
+        return days.replace('date_','')
 
 async def date_check(date):
     try:
