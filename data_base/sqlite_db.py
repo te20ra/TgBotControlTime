@@ -1,14 +1,14 @@
 import psycopg2
 from psycopg2 import Error
-
+from config import login_bd, password_bd
 
 def sql_start():
     try:
         global cur, connection
         # Подключение к существующей базе данных
-        connection = psycopg2.connect(user="te20ra",
+        connection = psycopg2.connect(user=login_bd,
                                       # пароль, который указали при установке PostgreSQL
-                                      password="gigi123",
+                                      password=password_bd,
                                       host="127.0.0.1",
                                       port="5432",
                                       database='database1')
