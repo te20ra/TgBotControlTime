@@ -187,9 +187,9 @@ async def add_time(message: types.Message, state: FSMContext):
 
 async def job_stop(callback_query: types.CallbackQuery):
     id_sql = callback_query.data.replace('job_stop_','')
-    await callback_query.message.delete()
     await sqlite_db_time.sql_alarm_no(id_sql)
     await callback_query.answer('Напоминание выполнено', show_alert=True)
+    await callback_query.message.delete()
 
 
 async def delete_job(message: types.Message):
