@@ -41,7 +41,7 @@ async def start_shedulers_with_bot():
             idsql = el[0]
             iduser = el[1]
             name = el[2]
-            days = el[3].replace('cron_','')[:-2]
+            days = el[3].replace('cron_','')
             time = datetime.strptime(el[4], '%H:%M')
             time = time - timedelta(minutes=1)
             hour = time.hour
@@ -101,7 +101,7 @@ async def rename_days(days):
                  'sun': 'вс'}
     res = ''
     if days.startswith('cron_'):
-        days = days.replace('cron_', '').split(', ')
+        days = days.replace('cron_', '').split(',')
         for i in range(len(days)-1):
             res += (days_dict[days[i]]) + ', '
         return res[:-2]
