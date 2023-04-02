@@ -93,8 +93,6 @@ async def add_time_onetime(message:types.Message, state: FSMContext):
             data['date'] = 'date_' + data['date']
             name = data['name_job']
             date = data['date'].replace('date_', '')
-        print(data)
-        print(tuple(data.values()))
         await sqlite_db_time.sql_time_new(state)
         idsql = await sqlite_db_time.sql_time_idsql(state)
         await state.finish()
@@ -104,7 +102,6 @@ async def add_time_onetime(message:types.Message, state: FSMContext):
                          kwargs={'iduser': message.from_user.id,
                                  'id_sql': idsql,
                                  'name': name})
-        print(sheduler.get_jobs())
     else:
         await bot.send_message(message.from_user.id, 'Время введено неверно')
 
@@ -138,26 +135,25 @@ async def add_day(callback_query: types.CallbackQuery, state: FSMContext):
             await FSM_time.next()
             await callback_query.answer()
             await bot.send_message(callback_query.from_user.id, 'Теперь введи время в формате "12:34"\nМинимум плюс 2 минуты к настоящему времени')
-            data['days'] = data['days'][:-2]
             days = await rename_days(data['days'])
             await bot.edit_message_text(f'Выбранные дни: {days}', callback_query.from_user.id, msgid,
                                         reply_markup='')
             del data['msgid']
         elif day == 'ready' and data['days'] == '':
-            await callback_query.answer('Необходимо выбрать дни',show_alert=True)
+            await callback_query.answer('Необходимо выбрать дни', show_alert=True)
         elif day in data['days']:
             data['days'] = data['days'].replace(f'{day}, ','')
             await callback_query.answer('День удален')
             if data['days'] != "":
-                days = await rename_days(data['days'][:-2])
+                days = await rename_days(data['days'])
             else:
-                days =""
+                days = ""
             await bot.edit_message_text(f'Выбранные дни: {days}', callback_query.from_user.id, msgid,
                                         reply_markup=kb_week_days.button_case_add)
         elif day not in data['days']:
             data['days'] += f'{day}, '
             await callback_query.answer('День добавлен')
-            days = await rename_days(data['days'][:-2])
+            days = await rename_days(data['days'])
             await bot.edit_message_text(f'Выбранные дни: {days}', callback_query.from_user.id, msgid,
                                         reply_markup=kb_week_days.button_case_add)
 
@@ -171,12 +167,12 @@ async def add_time(message: types.Message, state: FSMContext):
             days = await rename_days(data['days'])
             await bot.send_message(message.from_user.id, f'Напоминание добавлено \nДни: {days}\nВремя: {data["time"]}\nСтатус: ON',reply_markup=kb_time.button_case_add)
             name = data['name_job']
-            days = data['days'].strip().replace(' ','')
+            days = data['days'].strip().replace(' ','')[:-1]
             time = datetime.strptime(data['time'], '%H:%M')
             time = time - timedelta(minutes=1)
             hour = time.hour
             minute = time.minute
-            data['days'] = 'cron_' + data['days']
+            data['days'] = 'cron_' + days
         await sqlite_db_time.sql_time_new(state)
         idsql = await sqlite_db_time.sql_time_idsql(state)
         await state.finish()
@@ -204,7 +200,7 @@ async def delete_job(message: types.Message):
         for ret in read:
 
             if ret[2].startswith('cron') == True:
-                days = await rename_days(ret[2].replace('cron_', ''))
+                days = await rename_days(ret[2])
                 await bot.send_message(message.from_user.id, text=f'НАПОМИНАНИЕ: {ret[1]}\nДни: {days}\nВремя: {ret[3]}\nСтатус: {ret[4]}', reply_markup=\
         InlineKeyboardMarkup().add(InlineKeyboardButton('Удалить', callback_data=f'del_time {ret[0]}')))
 

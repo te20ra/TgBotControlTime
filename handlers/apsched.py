@@ -19,7 +19,6 @@ async def check_timeout(dp: Dispatcher, iduser, id_sql, last_time, starttime):
         except:
             print('Сообщение уже удалено')
 async def add_job_sheduler(dp: Dispatcher, iduser, id_sql, name):
-    print(f'add_job_sheduler {id_sql, name}')
     await sqlite_db_time.sql_alarm_yes(id_sql)
     sheduler.add_job(alarm, 'interval', seconds=60, id=f'alarm {id_sql}',args=(dp,),
                      kwargs={'iduser': iduser,
@@ -39,7 +38,6 @@ async def alarm(dp: Dispatcher, iduser, name, id_sql):
     else:
         sheduler.remove_job(f'alarm {id_sql}')
         days = await sqlite_db_time.sql_time_days_check(id_sql)
-        print(days)
         days.startswith('date_')
         if days.startswith('date_') == True:
             await sqlite_db_time.sql_time_delete(id_sql)
