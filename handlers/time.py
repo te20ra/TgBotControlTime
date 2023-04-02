@@ -59,10 +59,10 @@ async def add_name_job_onetime(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id,'Напиши дату напоминания в формате "2023-04-22')
     elif len(data['name_job']) > 100:
         await bot.send_message(message.from_user.id,
-                               f'Название напоминания слишком длинное. Напиши короче (не более 100 символов)')
+                               f'Название напоминания слишком длинное. Напишите короче (не более 100 символов)')
     elif data['name_job'].isdigit():
         await bot.send_message(message.from_user.id,
-                               f'Название напоминания не может состоять только из цифр. Напиши иначе')
+                               f'Название напоминания не может состоять только из цифр. Напишите иначе')
     else:
         await bot.send_message(message.from_user.id,
                                f'Такое напоминане уже есть. Введите заново')
@@ -118,10 +118,10 @@ async def add_name_job(message:types.Message, state: FSMContext):
             data['msgid'] = msg.message_id
     elif len(data['name_job']) > 100:
         await bot.send_message(message.from_user.id,
-                               f'Название напоминания слишком длинное. Напиши короче (не более 100 символов)')
+                               f'Название напоминания слишком длинное. Напишите короче (не более 100 символов)')
     elif data['name_job'].isdigit():
         await bot.send_message(message.from_user.id,
-                               f'Название напоминания не может состоять только из цифр. Напиши иначе')
+                               f'Название напоминания не может состоять только из цифр. Напишите иначе')
     else:
         await bot.send_message(message.from_user.id,
                                f'Такое напоминане уже есть. Введите заново')

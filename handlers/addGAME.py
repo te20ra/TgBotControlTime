@@ -45,10 +45,10 @@ async def add_game_name(message : types.Message, state: FSMContext):
                                 '*число от 1 до 180')
         elif len(data['name']) > 30:
             await bot.send_message(message.from_user.id,
-                                   f'Название игры слишком длинное. Напиши короче (не более 30 символов)')
+                                   f'Название игры слишком длинное. Напишите короче (не более 30 символов)')
         elif data['name'].isdigit():
             await bot.send_message(message.from_user.id,
-                                   f'Название игры не может состоять только из цифр. Напиши иначе')
+                                   f'Название игры не может состоять только из цифр. Напишите иначе')
         else:
             await bot.send_message(message.from_user.id,
                                    f'Игра с именем "{data["name"]}" уже есть. Введите игру заново')
@@ -62,7 +62,7 @@ async def add_game_maxtime(message : types.Message, state: FSMContext):
             data['maxtime'] = int(message.text)
         await sqlite_db.sql_add(state)
         await state.finish()
-        await bot.send_message(message.from_user.id, f'Игра "{data["name"]}" с лимтом времени "{data["maxtime"]}" добавлена',
+        await bot.send_message(message.from_user.id, f'Игра "{data["name"]}" с лимитом времени "{data["maxtime"]}" добавлена',
                                reply_markup=kb_add_game3.button_case_add)
     else:
         await bot.send_message(message.from_user.id,

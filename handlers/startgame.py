@@ -23,7 +23,7 @@ async def select_game(message: types.Message):
         st.append(i[0])
     print(st)
     if 'active' in st:
-        await bot.send_message(message.from_user.id, 'Другая игра активна. Закночи ее')
+        await bot.send_message(message.from_user.id, 'Другая игра активна. Закончи ее')
     elif len(read) > 0:
         await bot.send_message(message.from_user.id, 'Вы перешли в режим выбора игры')
         for ret in read:

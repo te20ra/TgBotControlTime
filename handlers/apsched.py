@@ -11,7 +11,7 @@ async def check_timeout(dp: Dispatcher, iduser, id_sql, last_time, starttime):
     if status == 'sleep':
         sheduler.remove_job(f'timeout {id_sql}')
     elif status == 'active' and datetime.now() >= last_time:
-        msg = await dp.bot.send_message(iduser, 'Заканчивай, ага', reply_markup= \
+        msg = await dp.bot.send_message(iduser, 'Заканчивай', reply_markup= \
         InlineKeyboardMarkup().add(InlineKeyboardButton('СТОП', callback_data=f'stopgame_{id_sql}_{str(starttime)}')))
         await sleep(58)
         try:
